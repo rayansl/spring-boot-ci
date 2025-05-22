@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "rayansl/spring-boot-demo" // غيّري حسب اسم حسابك
+        IMAGE_NAME = "rayansl/spring-boot-demo"
         CONTAINER_NAME = "spring-boot-container"
         KUBE_DEPLOY_FILE = "k8s/deployment.yaml"
         KUBE_SERVICE_FILE = "k8s/service.yaml"
@@ -12,25 +12,24 @@ pipeline {
         stage('Clone Repo') {
             steps {
                 echo '✅ Cloning repo automatically from GitHub...'
-                // يتم تلقائي من Jenkins (ما يحتاج أمر إضافي)
+                // Git step handled by Jenkins SCM
             }
         }
 
-stage('Build JAR') {
+        stage('Build JAR') {
             steps {
                 echo '🔧 Giving gradlew execute permission...'
-        sh 'chmod +x ./gradlew'
+                sh 'chmod +x ./gradlew'
 
-        echo '🔧 Building .jar file...'
-        sh './gradlew clean build'
-    }
-}
-
+                echo '🔧 Building .jar file...'
+                sh './gradlew clean build'
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
                 echo '🐳 Building Docker image...'
-                sh  "docker build -t %IMAGE_NAME% ."
+                sh "docker build -t $IMAGE_NAME ."
             }
         }
 
@@ -38,7 +37,7 @@ stage('Build JAR') {
             steps {
                 echo '🔐 Logging into DockerHub...'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh "docker login -u DOCKER_USER -p DOCKER_PASS"
+                    sh "docker login -u $DOCKER_USER -p $DOCKER_PASS"
                 }
             }
         }
@@ -46,21 +45,21 @@ stage('Build JAR') {
         stage('Push to DockerHub') {
             steps {
                 echo '📤 Pushing image to DockerHub...'
-                sh "docker push %IMAGE_NAME%"
+                sh "docker push $IMAGE_NAME"
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
                 echo '🚀 Applying K8s Deployment...'
-                sh "kubectl apply -f %KUBE_DEPLOY_FILE%"
+                sh "kubectl apply -f $KUBE_DEPLOY_FILE"
             }
         }
 
         stage('Expose Service') {
             steps {
                 echo '🌐 Applying K8s Service...'
-                sh "kubectl apply -f %KUBE_SERVICE_FILE%"
+                sh "kubectl apply -f $KUBE_SERVICE_FILE"
             }
         }
     }
