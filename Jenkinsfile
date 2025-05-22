@@ -16,12 +16,16 @@ pipeline {
             }
         }
 
-        stage('Build JAR') {
+stage('Build JAR') {
             steps {
-                echo '🔧 Building .jar file...'
-                sh './gradlew clean build'
-            }
-        }
+                echo '🔧 Giving gradlew execute permission...'
+        sh 'chmod +x ./gradlew'
+
+        echo '🔧 Building .jar file...'
+        sh './gradlew clean build'
+    }
+}
+
 
         stage('Build Docker Image') {
             steps {
