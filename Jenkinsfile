@@ -26,19 +26,19 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                echo '🐳 Building Docker image...'
-                sh "docker build -t $IMAGE_NAME ."
-            }
-        }
-
         stage('Login to DockerHub') {
             steps {
                 echo '🔐 Logging into DockerHub...'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh "docker login -u $DOCKER_USER -p $DOCKER_PASS"
                 }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo '🐳 Building Docker image...'
+                sh "docker build -t $IMAGE_NAME ."
             }
         }
 
